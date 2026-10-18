@@ -177,8 +177,19 @@ Not ported from upstream's viewer plugins:
 On 2026-10-18 (Windows, JDK 25.0.1):
 - **Build.** `./gradlew build` passes.
 - **EMI plugin.** `./gradlew build` compiles `compat/emi` against SEMI `1.1.24-SNAPSHOT+26.3`'s API jar.
-  `./gradlew runGameTestServer -PwithEmi` loads SEMI next to the mod and still passes 5/5. The pages themselves were
-  not seen in a client (see below).
+  `./gradlew runGameTestServer -PwithEmi` loads SEMI next to the mod and still passes 5/5. In a dev client
+  (`./gradlew runClient -PwithEmi`, singleplayer creative world), EMI logs `Reloaded plugin from createaddition` with
+  no errors. Screenshots of all three pages show:
+  - **Charging** (26 pages): the input, the powered tesla coil over its shadow, the arrows and the output in place.
+    `4.0K⚡` shows, and its tooltip reads `Energy: 4,000 FE` and `Max charge rate: 200 FE/t`.
+  - **Rolling** (6 pages): the rolling mill block, and outputs with counts (iron ingot → 2 iron rods).
+  - **Liquid Burning** (2 pages): straw, bucket and fluid slots, the heat bar with the `Heated` / `Super-Heated`
+    label, the matching blaze burner render, and the burn time (`16m`, `20m`).
+
+  Not checked in the client: the fluid slot's mB amount, and the burn-time tooltip. EMI's dev mode also warns about
+  untranslated tags, among them `#createaddition:spools`, `#createaddition:plants`, `#c:biofuel` and `#c:plantoil`.
+  These are only tag display names (`tag.item.*` / `tag.fluid.*` lang keys), and none of them appear on these three
+  pages.
 - **Static checks.** `tools/check_mixins.py` reports 0 problems against patched MC 26.3, NeoForge 26.3.0.89 and the
   Create port. `tools/data_26_3.py` finds 0 legacy constructs, and `tools/check_recipe_refs.py` 0 dangling references.
 - **Game-test server.** `./gradlew runGameTestServer` loads Create and Crafts & Additions and creates the world. The
@@ -193,12 +204,10 @@ On 2026-10-18 (Windows, JDK 25.0.1):
 
 ## Not verified, disabled or approximated
 
-- **Client.** Not run yet: no title screen, renderers, Flywheel visuals, ponder scenes, sounds or goggle tooltips.
-  The client code compiles against 26.3 and the Create port's client API, but launching a client needs the user's OK.
-- **Recipe viewers.** The EMI plugin for SEMI ([Recipe viewer (EMI)](#recipe-viewer-emi)) compiles and loads, but
-  no client has opened its pages yet. Unchecked: the three pages in EMI, the placement and angle of the tesla coil
-  and rolling mill blocks (`CAEmiWidgets`), the blaze burner render, and the fluid amounts in mB. JEI and REI are
-  not supported.
+- **Client.** A dev client with SEMI has reached a world (see [Verified](#verified)). Only the EMI pages were checked
+  there, not the renderers, Flywheel visuals, ponder scenes, sounds or goggle tooltips.
+- **Recipe viewers.** The EMI plugin for SEMI ([Recipe viewer (EMI)](#recipe-viewer-emi)) was checked in a dev client,
+  but the fluid slot's mB amount wasn't looked at. JEI and REI are not supported.
 - **ComputerCraft.** The peripherals compile against CC: Tweaked 1.120.3 for NeoForge, but were not loaded with CC in a
   test run. Use `-PwithCC` to add it to the dev runs.
 - **Upstream handshake.** It is replaced by NeoForge's payload version check. That check compares versions, not
