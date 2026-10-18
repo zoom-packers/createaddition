@@ -3,7 +3,7 @@ package com.mrh0.createaddition.energy;
 import com.mrh0.createaddition.transfer.EnergyTransferable;
 import com.zurrtum.create.api.behaviour.BlockEntityBehaviour;
 import com.zurrtum.create.foundation.blockEntity.SmartBlockEntity;
-import net.fabricmc.fabric.api.lookup.v1.block.BlockApiCache;
+import com.mrh0.createaddition.neoforge.energy.EnergyLookupCache;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
@@ -12,7 +12,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import org.jetbrains.annotations.Nullable;
-import team.reborn.energy.api.EnergyStorage;
+import com.mrh0.createaddition.neoforge.energy.EnergyStorage;
 
 import java.util.EnumMap;
 import java.util.List;
@@ -21,7 +21,7 @@ public abstract class AbstractElectricBlockEntity extends SmartBlockEntity imple
 
 	protected final InternalEnergyStorage localEnergy;
 
-	private final EnumMap<Direction, BlockApiCache<EnergyStorage, Direction>> escacheMap = new EnumMap<>(Direction.class);
+	private final EnumMap<Direction, EnergyLookupCache> escacheMap = new EnumMap<>(Direction.class);
 
 	public AbstractElectricBlockEntity(BlockEntityType<?> tileEntityTypeIn, BlockPos pos, BlockState state) {
 		super(tileEntityTypeIn, pos, state);
@@ -82,8 +82,8 @@ public abstract class AbstractElectricBlockEntity extends SmartBlockEntity imple
 	public EnergyStorage getCachedEnergy(Direction side) {
 		if(!(getLevel() instanceof ServerLevel serverLevel))
 			return null;
-		BlockApiCache<EnergyStorage, Direction> cache = escacheMap.computeIfAbsent(side,
-				side1 -> BlockApiCache.create(EnergyStorage.SIDED, serverLevel, getBlockPos().relative(side1)));
+		EnergyLookupCache cache = escacheMap.computeIfAbsent(side,
+				side1 -> EnergyLookupCache.create(serverLevel, getBlockPos().relative(side1)));
 		EnergyStorage es = cache.find(side.getOpposite());
 		if(es == null && ignoreCapSide())
 			es = cache.find(null);

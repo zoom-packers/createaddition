@@ -1,5 +1,6 @@
 package com.mrh0.createaddition.blocks.rolling_mill;
 
+import net.minecraft.util.Prediction;
 import com.mrh0.createaddition.index.CABlockEntities;
 import com.mrh0.createaddition.shapes.CAShapes;
 import com.zurrtum.create.content.kinetics.base.HorizontalKineticBlock;
@@ -56,13 +57,13 @@ public class RollingMillBlock extends HorizontalKineticBlock implements IBE<Roll
 				ItemStack stackInSlot = rollingMill.outputInv.getItem(slot);
 				if (!stackInSlot.isEmpty())
 					emptyOutput = false;
-				player.getInventory().placeItemBackInInventory(stackInSlot);
+				player.getInventory().placeItemBackInInventory(stackInSlot, Prediction.SERVER_ONLY);
 				rollingMill.outputInv.setItem(slot, ItemStack.EMPTY);
 			}
 
 			if (emptyOutput) {
 				for (int slot = 0; slot < rollingMill.inputInv.getContainerSize(); slot++) {
-					player.getInventory().placeItemBackInInventory(rollingMill.inputInv.getItem(slot));
+					player.getInventory().placeItemBackInInventory(rollingMill.inputInv.getItem(slot), Prediction.SERVER_ONLY);
 					rollingMill.inputInv.setItem(slot, ItemStack.EMPTY);
 				}
 			}

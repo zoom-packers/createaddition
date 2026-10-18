@@ -4,8 +4,9 @@ import com.mrh0.createaddition.config.CACommonConfig;
 import com.mrh0.createaddition.index.CAEffects;
 import com.mrh0.createaddition.index.CASounds;
 
-import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext;
-import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
+import com.mrh0.createaddition.neoforge.energy.CAEnergy;
+import net.neoforged.neoforge.transfer.access.ItemAccess;
+import net.neoforged.neoforge.transfer.transaction.Transaction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
@@ -16,7 +17,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
-import team.reborn.energy.api.EnergyStorage;
+import com.mrh0.createaddition.neoforge.energy.EnergyStorage;
 
 public class ElectrumAmuletItem extends Item {
     private static final int CHARGE_CHANCE = 300;
@@ -35,16 +36,16 @@ public class ElectrumAmuletItem extends Item {
         else if (slot == EquipmentSlot.OFFHAND) otherHand = InteractionHand.MAIN_HAND;
         else return;
 
-        EnergyStorage es = EnergyStorage.ITEM.find(player.getItemInHand(otherHand), ContainerItemContext.ofPlayerHand(player, otherHand));
+        EnergyStorage es = CAEnergy.find(player.getItemInHand(otherHand), ItemAccess.forPlayerInteraction(player, otherHand));
         if (es == null) return;
 
         boolean canCharge;
-        try (Transaction t = Transaction.openOuter()) {
+        try (Transaction t = Transaction.openRoot()) {
             canCharge = es.insert(1, t) > 0;
         }
 
         if (canCharge && level.getRandom().nextInt(CHARGE_CHANCE) == 0) {
-            try (Transaction t = Transaction.openOuter()) {
+            try (Transaction t = Transaction.openRoot()) {
                 es.insert((long) CHARGE_CHANCE * CACommonConfig.COMMON.ELECTRUM_AMULET_CHARGE_RATE.get(), t);
                 t.commit();
             }

@@ -21,6 +21,14 @@ Nature of the modifications:
   - recipes updated for renamed conventional tags and removed Create items
   - energy handling moved to the Team Reborn Energy API
 
+Modified again by Zoom Packers in 2026 (branch zp5/26.3) to run on Minecraft 26.3
+with NeoForge 26.3.0.89, built against Zoompack 5's NeoForge port of Create Fly:
+  - Fabric Loader and Fabric API replaced with NeoForge entrypoints, events,
+    capabilities and payloads
+  - energy moved from Team Reborn Energy to NeoForge's energy capability
+  - data converted to the 26.3 formats and to NeoForge resource conditions
+  - see PORTING.md for the full list
+
 This is an UNOFFICIAL port. It is not endorsed by or affiliated with the
 original authors. Please report problems with the port to this repository,
 not to the upstream project.

@@ -1,5 +1,6 @@
 package com.mrh0.createaddition.blocks.liquid_blaze_burner;
 
+import com.zurrtum.create.foundation.utility.FuelHelper;
 import java.util.List;
 import java.util.Optional;
 
@@ -269,7 +270,7 @@ public class LiquidBlazeBurnerBlockEntity extends SmartBlockEntity implements IO
 			newBurnTime = 3200;
 			newFuel = FuelType.SPECIAL;
 		} else {
-			newBurnTime = level == null ? 0 : level.fuelValues().burnDuration(itemStack);
+			newBurnTime = level == null ? 0 : FuelHelper.burnDuration(level, worldPosition, itemStack);
 			if (newBurnTime > 0)
 				newFuel = FuelType.NORMAL;
 			else if (itemStack.is(AllItemTags.BLAZE_BURNER_FUEL_REGULAR)) {

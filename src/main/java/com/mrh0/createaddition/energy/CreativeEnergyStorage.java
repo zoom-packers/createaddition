@@ -1,11 +1,12 @@
 package com.mrh0.createaddition.energy;
 
-import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
-import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
+import net.neoforged.neoforge.transfer.transaction.Transaction;
+import net.neoforged.neoforge.transfer.transaction.TransactionContext;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
-import team.reborn.energy.api.EnergyStorage;
+import com.mrh0.createaddition.neoforge.energy.CAEnergy;
+import com.mrh0.createaddition.neoforge.energy.EnergyStorage;
 
 public class CreativeEnergyStorage implements EnergyStorage {
 
@@ -40,10 +41,10 @@ public class CreativeEnergyStorage implements EnergyStorage {
 	}
 
 	public void outputToSide(Level world, BlockPos pos, Direction side) {
-		EnergyStorage ies = EnergyStorage.SIDED.find(world, pos.relative(side), side.getOpposite());
+		EnergyStorage ies = CAEnergy.find(world, pos.relative(side), side.getOpposite());
 		if(ies == null)
 			return;
-		try(Transaction t = Transaction.openOuter()) {
+		try(Transaction t = Transaction.openRoot()) {
 			ies.insert(Integer.MAX_VALUE, t);
 			t.commit();
 		}

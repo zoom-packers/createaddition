@@ -11,8 +11,8 @@ import com.zurrtum.create.api.behaviour.BlockEntityBehaviour;
 import com.zurrtum.create.catnip.animation.LerpedFloat;
 import com.zurrtum.create.content.redstone.thresholdSwitch.ThresholdSwitchObservable;
 import com.zurrtum.create.foundation.blockEntity.SmartBlockEntity;
-import net.fabricmc.fabric.api.lookup.v1.block.BlockApiCache;
-import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
+import com.mrh0.createaddition.neoforge.energy.EnergyLookupCache;
+import net.neoforged.neoforge.transfer.transaction.Transaction;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
@@ -27,8 +27,8 @@ import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.AABB;
 import org.jetbrains.annotations.Nullable;
-import team.reborn.energy.api.EnergyStorage;
-import team.reborn.energy.api.EnergyStorageUtil;
+import com.mrh0.createaddition.neoforge.energy.EnergyStorage;
+import com.mrh0.createaddition.neoforge.energy.CAEnergy;
 
 import java.util.EnumMap;
 import java.util.List;
@@ -47,7 +47,7 @@ public class ModularAccumulatorBlockEntity extends SmartBlockEntity implements E
 	protected int syncCooldown;
 	protected boolean queuedSync;
 
-	private final EnumMap<Direction, BlockApiCache<EnergyStorage, Direction>> escacheMap = new EnumMap<>(Direction.class);
+	private final EnumMap<Direction, EnergyLookupCache> escacheMap = new EnumMap<>(Direction.class);
 
 	public ModularAccumulatorBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
 		super(type, pos, state);
@@ -143,13 +143,13 @@ public class ModularAccumulatorBlockEntity extends SmartBlockEntity implements E
 		if (!level.isLoaded(getBlockPos().relative(side))) return;
 		ModularAccumulatorBlockEntity controllerBE = getControllerBE();
 		if (controllerBE == null) return;
-		BlockApiCache<EnergyStorage, Direction> sideCache = escacheMap.computeIfAbsent(side,
-				side1 -> BlockApiCache.create(EnergyStorage.SIDED, serverLevel, getBlockPos().relative(side1)));
+		EnergyLookupCache sideCache = escacheMap.computeIfAbsent(side,
+				side1 -> EnergyLookupCache.create(serverLevel, getBlockPos().relative(side1)));
 		EnergyStorage target = sideCache.find(side.getOpposite());
 		if (target == null) return;
 		if (target == controllerBE.energyCapability) return;
-		try (Transaction t = Transaction.openOuter()) {
-			EnergyStorageUtil.move(controllerBE.energyCapability, target, CACommonConfig.COMMON.ACCUMULATOR_MAX_OUTPUT.get(), t);
+		try (Transaction t = Transaction.openRoot()) {
+			CAEnergy.move(controllerBE.energyCapability, target, CACommonConfig.COMMON.ACCUMULATOR_MAX_OUTPUT.get(), t);
 			t.commit();
 		}
 	}

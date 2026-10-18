@@ -12,16 +12,26 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.FluidState;
+import net.neoforged.neoforge.fluids.FluidType;
+
+import java.util.function.Supplier;
 
 public class CAFluidEntry {
     public FlowableFluid flowing = new Flowing();
     public FlowableFluid still = new Still();
     public BucketItem bucket;
     public FluidBlock block;
+    // NeoForge: every mod fluid needs a FluidType (neoforge.CAFluidTypes)
+    public Supplier<FluidType> fluidType;
 
     private class Flowing extends FlowableFluid {
         public CAFluidEntry getEntry() {
             return CAFluidEntry.this;
+        }
+
+        @Override
+        public FluidType getFluidType() {
+            return fluidType.get();
         }
 
         @Override
@@ -87,6 +97,11 @@ public class CAFluidEntry {
     private class Still extends FlowableFluid {
         public CAFluidEntry getEntry() {
             return CAFluidEntry.this;
+        }
+
+        @Override
+        public FluidType getFluidType() {
+            return fluidType.get();
         }
 
         @Override

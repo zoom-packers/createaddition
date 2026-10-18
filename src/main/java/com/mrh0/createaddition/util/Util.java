@@ -14,7 +14,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LightLayer;
-import team.reborn.energy.api.EnergyStorage;
+import com.mrh0.createaddition.neoforge.energy.EnergyStorage;
 
 public class Util {
 	public static int max(int...v) {

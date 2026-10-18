@@ -2,7 +2,7 @@ package com.mrh0.createaddition.network;
 
 import com.mrh0.createaddition.CreateAddition;
 import io.netty.buffer.ByteBuf;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.neoforged.neoforge.network.PacketDistributor;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -38,7 +38,7 @@ public record EnergyNetworkPacketPayload(BlockPos pos, int demand, int buff) imp
     }
 
     public static boolean send(BlockPos pos, int demand, int buff, ServerPlayer player) {
-        ServerPlayNetworking.send(player, new EnergyNetworkPacketPayload(pos, demand, buff));
+        PacketDistributor.sendToPlayer(player, new EnergyNetworkPacketPayload(pos, demand, buff));
         return true;
     }
 }

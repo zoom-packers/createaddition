@@ -3,12 +3,12 @@ package com.mrh0.createaddition.blocks.portable_energy_interface;
 import com.mrh0.createaddition.config.CACommonConfig;
 import com.zurrtum.create.content.contraptions.Contraption;
 import com.zurrtum.create.content.contraptions.behaviour.MovementContext;
-import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
-import net.fabricmc.fabric.api.transfer.v1.transaction.base.SnapshotParticipant;
+import net.neoforged.neoforge.transfer.transaction.TransactionContext;
+import net.neoforged.neoforge.transfer.transaction.SnapshotJournal;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import org.jetbrains.annotations.Nullable;
-import team.reborn.energy.api.EnergyStorage;
+import com.mrh0.createaddition.neoforge.energy.EnergyStorage;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -44,7 +44,7 @@ public class PortableEnergyManager {
 		return CONTRAPTIONS.get(contraption.entity.getUUID());
 	}
 
-	public static class EnergyStorageHolder extends SnapshotParticipant<Long> implements EnergyStorage {
+	public static class EnergyStorageHolder extends SnapshotJournal<Long> implements EnergyStorage {
 
 		private long energy = 0;
 		private long committedEnergy = 0;
@@ -78,12 +78,12 @@ public class PortableEnergyManager {
 		}
 
 		@Override
-		protected void readSnapshot(Long snapshot) {
+		protected void revertToSnapshot(Long snapshot) {
 			this.energy = snapshot;
 		}
 
 		@Override
-		protected void onFinalCommit() {
+		protected void onRootCommit(Long originalState) {
 			long delta = this.energy - this.committedEnergy;
 			this.committedEnergy = this.energy;
 			if (delta > 0) {

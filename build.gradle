@@ -1,0 +1,230 @@
+// NeoForge 26.3 build of Create Fly: Crafts & Additions, maintained for Zoompack 5.
+// Builds against ZP5's NeoForge port of Create Fly (mod id `create`, package com.zurrtum.create).
+// Mirrors that port's build: ModDevGradle, upstream's split main/client source sets, one mod and one jar.
+import javax.imageio.ImageIO
+
+plugins {
+    id 'java-library'
+    id 'idea'
+    id 'net.neoforged.moddev' version '2.0.148'
+}
+
+repositories {
+    exclusiveContent {
+        forRepository {
+            maven { url = 'https://api.modrinth.com/maven' }
+        }
+        filter { includeGroup 'maven.modrinth' }
+    }
+    // SEMI (Seasonal EMI), ZP5's recipe viewer: EMI ported to 26.3. It keeps EMI's API and the `emi` mod id.
+    exclusiveContent {
+        forRepository {
+            maven { url = 'https://raw.githubusercontent.com/Pandaismyname1/SEMI/maven' }
+        }
+        filter { includeGroup 'dev.emi' }
+    }
+}
+
+def modId = project.mod_id
+
+version = "${project.minecraft_version}-${project.upstream_version}-${project.port_build}"
+group = project.maven_group
+
+base {
+    archivesName = project.archives_base_name
+}
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(25)
+
+sourceSets {
+    main {
+        java {
+            exclude 'com/mrh0/createaddition/index/CAAdvancements.java'
+            // Fabric-only recipe viewer (Create REI Viewer) and Fabric recipe sync; see PORTING.md
+            exclude 'com/mrh0/createaddition/compat/viewer/**'
+            exclude 'com/mrh0/createaddition/compat/fabric/**'
+            // NeoForge negotiates payload versions itself (CANetwork registers them versioned)
+            exclude 'com/mrh0/createaddition/network/CAHandshake.java'
+            exclude 'com/mrh0/createaddition/network/HandshakePayload.java'
+        }
+        resources {
+            exclude 'fabric.mod.json'
+        }
+    }
+    client {
+        compileClasspath += main.output
+        runtimeClasspath += main.output
+        java {
+            exclude 'com/mrh0/createaddition/compat/viewer/**'
+            exclude 'com/mrh0/createaddition/network/CAClientHandshake.java'
+        }
+    }
+}
+
+configurations {
+    clientCompileOnly.extendsFrom compileOnly
+    clientImplementation.extendsFrom implementation
+    localRuntime
+    runtimeClasspath.extendsFrom localRuntime
+    clientRuntimeClasspath.extendsFrom localRuntime
+}
+
+neoForge {
+    version = project.neo_version
+
+    addModdingDependenciesTo sourceSets.client
+
+    // Compile against the vanilla view Create's port sees at runtime: its access transformers and the
+    // interfaces its mixins inject (copied from the Create port, see PORTING.md)
+    accessTransformers {
+        from file('libs/create-accesstransformer.cfg')
+    }
+    interfaceInjectionData {
+        from file('libs/create-interfaces.json')
+    }
+
+    mods {
+        "${modId}" {
+            sourceSet(sourceSets.main)
+            if (!project.hasProperty('serverOnly')) {
+                sourceSet(sourceSets.client)
+            }
+        }
+    }
+
+    runs {
+        client {
+            client()
+            sourceSet = sourceSets.client
+            loadedMods = [mods."${modId}"]
+            systemProperty 'neoforge.enabledGameTestNamespaces', modId
+        }
+        server {
+            server()
+            loadedMods = [mods."${modId}"]
+            programArgument '--nogui'
+            systemProperty 'neoforge.enabledGameTestNamespaces', modId
+        }
+        gameTestServer {
+            type = 'gameTestServer'
+            systemProperty 'neoforge.enabledGameTestNamespaces', modId
+            loadedMods = [mods."${modId}"]
+        }
+        configureEach {
+            systemProperty 'forge.logging.markers', 'REGISTRIES'
+            logLevel = org.slf4j.event.Level.INFO
+            if (project.hasProperty('mixinDebug')) {
+                systemProperty 'mixin.debug.verbose', 'true'
+                systemProperty 'mixin.debug.export', 'true'
+            }
+        }
+    }
+}
+
+dependencies {
+    // ZP5's NeoForge port of Create Fly. On the runtime classpath it is loaded as a mod.
+    implementation files("libs/${project.create_jar}")
+    compileOnly 'com.google.code.findbugs:jsr305:3.0.2'
+    compileOnly "maven.modrinth:cc-tweaked:${project.cct_version}"
+    // -PwithCC adds CC: Tweaked to the dev runs
+    if (project.hasProperty('withCC')) {
+        localRuntime "maven.modrinth:cc-tweaked:${project.cct_version}"
+    }
+    // EMI plugin (compat/emi, client only) compiles against SEMI's API jar. -PwithEmi adds SEMI to the dev runs.
+    clientCompileOnly "dev.emi:semi-neoforge:${project.emi_version}:api"
+    if (project.hasProperty('withEmi')) {
+        localRuntime "dev.emi:semi-neoforge:${project.emi_version}"
+    }
+}
+
+// Create Fly's connected textures want one sprite per tile; upstream keeps sheets in the sources and
+// cuts them at build time. Same layout as upstream's Fabric build.
+def generatedConnectedTextureResources = layout.buildDirectory.dir('generated/connected-texture-resources')
+def omniTileIndexes = [1, 2, 3, 8, 9, 10, 11, 12, 13, 16, 17, 18, 19, 20, 21, 24, 25, 26, 27, 28, 29, 30,
+                       32, 33, 34, 35, 36, 37, 38, 40, 41, 42, 43, 44, 45, 46, 48, 49, 50, 51, 52, 53, 54, 56, 57, 58]
+def rectangleTileIndexes = (0..11).toList() + (13..15).toList()
+def connectedTextureSheets = [
+        'assets/createaddition/textures/block/modular_accumulator/block_connected.png'    : [4, rectangleTileIndexes],
+        'assets/createaddition/textures/block/modular_accumulator/block_top_connected.png': [4, rectangleTileIndexes],
+        'assets/createaddition/textures/block/copper_wire_casing/block_connected.png'     : [8, omniTileIndexes],
+]
+
+def generateConnectedTextureSprites = tasks.register('generateConnectedTextureSprites') {
+    def resourceRoot = file('src/main/resources')
+    inputs.files(connectedTextureSheets.keySet().collect { new File(resourceRoot, it) })
+            .withPropertyName('connectedTextureSheets')
+            .withPathSensitivity(PathSensitivity.RELATIVE)
+    inputs.property('connectedTextureLayout', 'create-fly-26.2-v1')
+    outputs.dir(generatedConnectedTextureResources)
+    doLast {
+        def outputRoot = generatedConnectedTextureResources.get().asFile
+        project.delete(outputRoot)
+        connectedTextureSheets.each { String relativeSheet, List layout ->
+            int gridSize = layout[0]
+            List<Integer> tileIndexes = layout[1]
+            def sheetFile = new File(resourceRoot, relativeSheet)
+            def sheet = ImageIO.read(sheetFile)
+            if (sheet == null) throw new GradleException("Could not decode $sheetFile")
+            if (sheet.width != sheet.height || sheet.width % gridSize != 0)
+                throw new GradleException("$sheetFile must be a $gridSize x $gridSize grid of square tiles")
+            int tileSize = sheet.width.intdiv(gridSize)
+            def spriteDirectory = new File(outputRoot, relativeSheet - '.png')
+            spriteDirectory.mkdirs()
+            tileIndexes.eachWithIndex { int sourceTileIndex, int index ->
+                def tile = sheet.getSubimage((sourceTileIndex % gridSize) * tileSize, sourceTileIndex.intdiv(gridSize) * tileSize, tileSize, tileSize)
+                if (!ImageIO.write(tile, 'png', new File(spriteDirectory, "${index + 1}.png")))
+                    throw new GradleException("No PNG writer is available for $spriteDirectory")
+            }
+        }
+    }
+}
+
+// Expands ${...} placeholders in src/main/templates (neoforge.mods.toml) from gradle.properties.
+def generateModMetadata = tasks.register('generateModMetadata', ProcessResources) {
+    def replaceProperties = [
+            minecraft_version_range: project.minecraft_version_range,
+            neo_version_range      : project.neo_version_range,
+            create_version_range   : project.create_version_range,
+            emi_version_range      : project.emi_version_range,
+            mod_id                 : modId,
+            mod_version            : project.version,
+    ]
+    inputs.properties replaceProperties
+    expand replaceProperties
+    from 'src/main/templates'
+    into 'build/generated/sources/modMetadata'
+}
+sourceSets.main.resources.srcDir generateModMetadata
+neoForge.ideSyncTask generateModMetadata
+
+tasks.named('processResources', ProcessResources) {
+    dependsOn generateConnectedTextureSprites
+    from generatedConnectedTextureResources
+    exclude connectedTextureSheets.keySet() as List
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.compilerArgs += ['-Xmaxerrs', '100000']
+    options.release = 25
+}
+
+java {
+    withSourcesJar()
+}
+
+tasks.named('sourcesJar', Jar) {
+    from sourceSets.client.allJava
+    from 'LICENSE', 'NOTICE', 'PORTING.md'
+}
+
+jar {
+    from sourceSets.client.output
+    from 'LICENSE', 'NOTICE'
+}
+
+idea {
+    module {
+        downloadSources = true
+    }
+}

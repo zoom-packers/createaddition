@@ -28,7 +28,7 @@ public class LargeConnectorBlock extends AbstractConnectorBlock<LargeConnectorBl
     }
 
     @Override
-    protected VoxelShape getShape(BlockState state, BlockGetter worldIn, BlockPos pos, CollisionContext context) {
+    public VoxelShape getShape(BlockState state, BlockGetter worldIn, BlockPos pos, CollisionContext context) {
         return CONNECTOR_SHAPE.get(state.getValue(FACING).getOpposite());
     }
 }

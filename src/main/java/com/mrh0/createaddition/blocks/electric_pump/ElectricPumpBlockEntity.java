@@ -18,7 +18,7 @@ import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Quaternionf;
-import team.reborn.energy.api.EnergyStorage;
+import com.mrh0.createaddition.neoforge.energy.EnergyStorage;
 
 public class ElectricPumpBlockEntity extends PumpBlockEntity implements EnergyTransferable {
 	public static final float[][] PARTIAL_OFFSETS = {

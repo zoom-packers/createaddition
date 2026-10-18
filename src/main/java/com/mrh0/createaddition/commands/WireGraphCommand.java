@@ -4,14 +4,15 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mrh0.createaddition.energy.network.WireGraph;
 
-import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
 
 public class WireGraphCommand {
 	public static void register() {
-		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> register(dispatcher));
+		NeoForge.EVENT_BUS.addListener(RegisterCommandsEvent.class, event -> register(event.getDispatcher()));
 	}
 
 	public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {

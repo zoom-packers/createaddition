@@ -10,25 +10,28 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.TooltipDisplay;
-import team.reborn.energy.api.base.SimpleEnergyItem;
+import com.mrh0.createaddition.index.CADataComponents;
 
-public class CapacitorItem extends Item implements SimpleEnergyItem {
+// NeoForge: TR Energy's SimpleEnergyItem is replaced by an ItemAccessEnergyHandler capability (CATransfer) that
+// stores the charge in createaddition:energy.
+public class CapacitorItem extends Item {
 
     public CapacitorItem(Properties props) {
         super(props.stacksTo(16));
     }
 
-    @Override
+    public static long getStoredEnergy(ItemStack stack) {
+        return stack.getOrDefault(CADataComponents.ENERGY, 0);
+    }
+
     public long getEnergyCapacity(ItemStack stack) {
         return CACommonConfig.COMMON.CAPACITOR_CAPACITY.get();
     }
 
-    @Override
     public long getEnergyMaxInput(ItemStack stack) {
         return CACommonConfig.COMMON.CAPACITOR_CHARGE_RATE.get();
     }
 
-    @Override
     public long getEnergyMaxOutput(ItemStack stack) {
         return CACommonConfig.COMMON.CAPACITOR_CHARGE_RATE.get();
     }

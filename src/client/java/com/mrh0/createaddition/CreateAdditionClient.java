@@ -36,7 +36,6 @@ import com.mrh0.createaddition.index.CABlockEntities;
 import com.mrh0.createaddition.index.CABlocks;
 import com.mrh0.createaddition.index.CAFluids;
 import com.mrh0.createaddition.index.CAPartials;
-import com.mrh0.createaddition.network.CAClientHandshake;
 import com.mrh0.createaddition.network.EnergyNetworkPacketPayload;
 import com.mrh0.createaddition.network.TimeRemainingPacketPayload;
 import com.mrh0.createaddition.blocks.alternator.AlternatorBlockEntity;
@@ -69,13 +68,13 @@ import java.util.Map;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.Item;
-import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.neoforged.neoforge.client.network.event.RegisterClientPayloadHandlersEvent;
 
-public class CreateAdditionClient implements ClientModInitializer {
+// NeoForge: no longer the Fabric client entrypoint. neoforge.CreateAdditionNeoForgeClient runs it right after the
+// content is registered, because it refers to Crafts & Additions' items and block entity types.
+public class CreateAdditionClient {
 
-	@Override
-	public void onInitializeClient() {
+	public static void onInitializeClient() {
 		CAPartials.init();
 		registerModels();
 		registerBlockEntityRenders();
@@ -84,7 +83,6 @@ public class CreateAdditionClient implements ClientModInitializer {
 		registerItemTooltips();
 		registerBlockEntityBehaviours();
 		registerFluidConfigs();
-		registerClientReceivers();
 		ClientEventHandler.register();
 		PonderIndex.addPlugin(new CAPonderPlugin());
 	}
@@ -187,13 +185,12 @@ public class CreateAdditionClient implements ClientModInitializer {
 		AllFluidConfigs.model(CAFluids.BIOETHANOL);
 	}
 
-	private static void registerClientReceivers() {
-		ClientPlayNetworking.registerGlobalReceiver(
+	public static void registerPayloadHandlers(RegisterClientPayloadHandlersEvent event) {
+		event.register(
 			EnergyNetworkPacketPayload.TYPE,
 			(payload, context) -> EnergyNetworkPacketPayload.updateClientCache(payload.pos(), payload.demand(), payload.buff()));
-		ClientPlayNetworking.registerGlobalReceiver(
+		event.register(
 			TimeRemainingPacketPayload.TYPE,
 			(payload, context) -> TimeRemainingPacketPayload.updateClientCache(payload.timeRemaining()));
-		CAClientHandshake.register();
 	}
 }

@@ -6,13 +6,14 @@
     "fluid_tag": "#c:biodiesel"
   },
   "burn_time": 24000,
-  "fabric:load_conditions": [
+  "neoforge:conditions": [
     {
-      "condition": "fabric:tags_populated",
-      "registry": "minecraft:fluid",
-      "values": [
-        "c:biodiesel"
-      ]
+      "type": "neoforge:not",
+      "value": {
+        "type": "neoforge:tag_empty",
+        "tag": "c:biodiesel",
+        "registry": "minecraft:fluid"
+      }
     }
   ]
 }

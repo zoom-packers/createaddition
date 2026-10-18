@@ -16,8 +16,6 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 
 public class CreativeEnergyBlock extends CrateBlock implements IBE<CreativeEnergyBlockEntity> {
 
-	public static final MapCodec<CreativeEnergyBlock> CODEC = simpleCodec(CreativeEnergyBlock::new);
-
 	public static final VoxelShape CREATIVE_ENERGY_SHAPE = CAShapes.shape(1,0,1,15,16,15).add(0,2,0,16,14,16).build();
 
 	public CreativeEnergyBlock(Properties props) {
@@ -39,8 +37,4 @@ public class CreativeEnergyBlock extends CrateBlock implements IBE<CreativeEnerg
 		return CABlockEntities.CREATIVE_ENERGY;
 	}
 
-	@Override
-	protected MapCodec<? extends DirectionalBlock> codec() {
-		return CODEC;
-	}
 }

@@ -163,7 +163,7 @@ public abstract class AbstractConnectorBlock<BE extends AbstractConnectorBlockEn
 	}
 
 	@Override
-	protected BlockState rotate(BlockState state, Rotation direction) {
+	public BlockState rotate(BlockState state, Rotation direction) {
 		return state.setValue(FACING, direction.rotate(state.getValue(FACING)));
 	}
 

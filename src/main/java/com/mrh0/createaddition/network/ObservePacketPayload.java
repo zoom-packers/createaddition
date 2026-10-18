@@ -2,9 +2,7 @@ package com.mrh0.createaddition.network;
 
 import com.mrh0.createaddition.CreateAddition;
 import io.netty.buffer.ByteBuf;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -28,17 +26,17 @@ public record ObservePacketPayload(BlockPos pos, int node) implements CustomPack
 
     private static int cooldown = 0;
 
-    @Environment(EnvType.CLIENT)
+    // Client only
     public static void tick() {
         cooldown--;
         if (cooldown < 0) cooldown = 0;
     }
 
-    @Environment(EnvType.CLIENT)
+    // Client only
     public static boolean send(BlockPos pos, int node) {
         if (cooldown > 0) return false;
         cooldown = 10;
-        ClientPlayNetworking.send(new ObservePacketPayload(pos, node));
+        ClientPacketDistributor.sendToServer(new ObservePacketPayload(pos, node));
         return true;
     }
 }

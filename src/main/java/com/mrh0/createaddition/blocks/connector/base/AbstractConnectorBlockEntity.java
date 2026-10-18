@@ -15,10 +15,10 @@ import com.mrh0.createaddition.transfer.EnergyTransferable;
 
 import com.zurrtum.create.api.behaviour.BlockEntityBehaviour;
 import com.zurrtum.create.foundation.blockEntity.SmartBlockEntity;
-import net.fabricmc.fabric.api.lookup.v1.block.BlockApiCache;
-import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
-import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
-import net.fabricmc.fabric.api.transfer.v1.transaction.base.SnapshotParticipant;
+import com.mrh0.createaddition.neoforge.energy.EnergyLookupCache;
+import net.neoforged.neoforge.transfer.transaction.Transaction;
+import net.neoforged.neoforge.transfer.transaction.TransactionContext;
+import net.neoforged.neoforge.transfer.transaction.SnapshotJournal;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
@@ -28,7 +28,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import org.jetbrains.annotations.Nullable;
-import team.reborn.energy.api.EnergyStorage;
+import com.mrh0.createaddition.neoforge.energy.EnergyStorage;
 
 public abstract class AbstractConnectorBlockEntity extends SmartBlockEntity implements EnergyTransferable, IWireNode, IObserveBlockEntity {
 
@@ -41,7 +41,7 @@ public abstract class AbstractConnectorBlockEntity extends SmartBlockEntity impl
 	private boolean firstTick = true;
 
 	public EnergyStorage internal = new InterfaceEnergyHandler();
-	protected BlockApiCache<EnergyStorage, Direction> externalStorageCache;
+	protected EnergyLookupCache externalStorageCache;
 
 	public AbstractConnectorBlockEntity(BlockEntityType<?> blockEntityTypeIn, BlockPos pos, BlockState state) {
 		super(blockEntityTypeIn, pos, state);
@@ -66,7 +66,7 @@ public abstract class AbstractConnectorBlockEntity extends SmartBlockEntity impl
 		return Math.min(getMaxIn(), getMaxOut());
 	}
 
-	private class InterfaceEnergyHandler extends SnapshotParticipant<long[]> implements EnergyStorage {
+	private class InterfaceEnergyHandler extends SnapshotJournal<long[]> implements EnergyStorage {
 
 		private long pendingIn;
 		private long pendingOut;
@@ -107,13 +107,13 @@ public abstract class AbstractConnectorBlockEntity extends SmartBlockEntity impl
 		}
 
 		@Override
-		protected void readSnapshot(long[] snapshot) {
+		protected void revertToSnapshot(long[] snapshot) {
 			pendingIn = snapshot[0];
 			pendingOut = snapshot[1];
 		}
 
 		@Override
-		protected void onFinalCommit() {
+		protected void onRootCommit(long[] originalState) {
 			EnergyNetwork network = liveNetwork();
 			if (network != null) {
 				if (pendingIn > 0) network.push(pendingIn);
@@ -292,10 +292,10 @@ public abstract class AbstractConnectorBlockEntity extends SmartBlockEntity impl
 
 		if (mode == ConnectorMode.Push) {
 			long pulled;
-			try (Transaction t = Transaction.openOuter()) {
+			try (Transaction t = Transaction.openRoot()) {
 				pulled = network.pull(network.demand(externalStorage.insert(getMaxOut(), t)));
 			}
-			try (Transaction t = Transaction.openOuter()) {
+			try (Transaction t = Transaction.openRoot()) {
 				externalStorage.insert(pulled, t);
 				t.commit();
 			}
@@ -303,7 +303,7 @@ public abstract class AbstractConnectorBlockEntity extends SmartBlockEntity impl
 
 		if (mode == ConnectorMode.Pull) {
 			long toPush;
-			try (Transaction t = Transaction.openOuter()) {
+			try (Transaction t = Transaction.openRoot()) {
 				toPush = externalStorage.extract(network.push(getMaxIn(), true), t);
 				t.commit();
 			}
@@ -380,7 +380,7 @@ public abstract class AbstractConnectorBlockEntity extends SmartBlockEntity impl
 		if (!(level instanceof ServerLevel serverLevel)) return;
 		if (!level.isLoaded(getBlockPos())) return;
 		Direction side = getBlockState().getValue(AbstractConnectorBlock.FACING);
-		externalStorageCache = BlockApiCache.create(EnergyStorage.SIDED, serverLevel, worldPosition.relative(side));
+		externalStorageCache = EnergyLookupCache.create(serverLevel, worldPosition.relative(side));
 	}
 
 	@Nullable

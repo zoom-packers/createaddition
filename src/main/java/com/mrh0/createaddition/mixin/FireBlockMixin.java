@@ -54,11 +54,12 @@ public class FireBlockMixin {
         return Math.max(igniteOdds, fireSpeed);
     }
 
+    // NeoForge: checkBurnOut gained the face and reads IBlockStateExtension#getFlammability instead of getBurnOdds
     @ModifyExpressionValue(
-            method = "checkBurnOut(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;ILnet/minecraft/util/RandomSource;I)V",
-            at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/FireBlock;getBurnOdds(Lnet/minecraft/world/level/block/state/BlockState;)I")
+            method = "checkBurnOut(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;ILnet/minecraft/util/RandomSource;ILnet/minecraft/core/Direction;)V",
+            at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/state/BlockState;getFlammability(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/Direction;)I")
     )
-    private int considerFluidFlammability(int original, Level level, BlockPos pos, int odds, RandomSource random, int age) {
+    private int considerFluidFlammability(int original, Level level, BlockPos pos, int odds, RandomSource random, int age, Direction face) {
         FluidState fluidState = level.getFluidState(pos);
         if (fluidState.isEmpty()) {
             return original;
@@ -75,9 +76,10 @@ public class FireBlockMixin {
         return Math.max(original, flammability);
     }
 
+    // NeoForge: the infiniburn tag check is IBlockStateExtension#isFireSource
     @ModifyExpressionValue(
             method = "tick(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/core/BlockPos;Lnet/minecraft/util/RandomSource;)V",
-            at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/state/BlockState;is(Lnet/minecraft/core/HolderSet;)Z")
+            at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/state/BlockState;isFireSource(Lnet/minecraft/world/level/LevelReader;Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/Direction;)Z")
     )
     private boolean keepFire(boolean original, BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
         if (original) {

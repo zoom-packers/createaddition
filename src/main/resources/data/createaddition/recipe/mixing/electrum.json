@@ -11,13 +11,13 @@
       "id": "createaddition:electrum_ingot"
     }
   ],
-  "fabric:load_conditions": [
+  "neoforge:conditions": [
     {
-      "condition": "fabric:tags_populated",
-      "registry": "minecraft:item",
-      "values": [
-        "c:ingots/silver"
-      ]
+      "type": "neoforge:not",
+      "value": {
+        "type": "neoforge:tag_empty",
+        "tag": "c:ingots/silver"
+      }
     }
   ]
 }

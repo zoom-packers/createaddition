@@ -1,5 +1,6 @@
 package com.mrh0.createaddition.item;
 
+import net.minecraft.util.Prediction;
 import java.util.function.Consumer;
 
 import com.mrh0.createaddition.CreateAddition;
@@ -69,13 +70,13 @@ public class WireSpool extends Item {
 					c.getItemInHand().shrink(1);
 					ItemStack stack = connectionType.getSourceDrop();
 					boolean shouldDrop = !c.getPlayer().addItem(stack);
-					if(shouldDrop) c.getPlayer().drop(stack, false);
+					if(shouldDrop) c.getPlayer().drop(stack, false, Prediction.SERVER_ONLY);
 				}
 				else if(result.isLinked()) {
 					c.getItemInHand().shrink(1);
 					ItemStack stack = new ItemStack(CAItems.SPOOL, 1);
 					boolean shouldDrop = !c.getPlayer().addItem(stack);
-					if(shouldDrop) c.getPlayer().drop(stack, false);
+					if(shouldDrop) c.getPlayer().drop(stack, false, Prediction.SERVER_ONLY);
 				}
 			}
 			c.getItemInHand().remove(DataComponents.CUSTOM_DATA);

@@ -6,14 +6,14 @@
       "id": "createaddition:diamond_grit"
     }
   ],
-  "fabric:load_conditions": [
+  "ingredient": "minecraft:diamond",
+  "neoforge:conditions": [
     {
-      "condition": "fabric:tags_populated",
-      "registry": "minecraft:item",
-      "values": [
-        "c:dusts/diamond"
-      ]
+      "type": "neoforge:not",
+      "value": {
+        "type": "neoforge:tag_empty",
+        "tag": "c:dusts/diamond"
+      }
     }
-  ],
-  "ingredient": "minecraft:diamond"
+  ]
 }

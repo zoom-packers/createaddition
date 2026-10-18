@@ -1,5 +1,6 @@
 package com.mrh0.createaddition.blocks.liquid_blaze_burner;
 
+import net.minecraft.util.Prediction;
 import com.mojang.serialization.MapCodec;
 import com.mrh0.createaddition.index.CABlockEntities;
 import com.zurrtum.create.AllItems;
@@ -42,16 +43,9 @@ import static com.zurrtum.create.content.processing.burner.BlazeBurnerBlock.HEAT
 
 public class LiquidBlazeBurnerBlock extends HorizontalDirectionalBlock implements IBE<LiquidBlazeBurnerBlockEntity>, IWrenchable, FluidInventoryProvider<LiquidBlazeBurnerBlockEntity> {
 
-	public static final MapCodec<LiquidBlazeBurnerBlock> CODEC = simpleCodec(LiquidBlazeBurnerBlock::new);
-
 	public LiquidBlazeBurnerBlock(Properties properties) {
 		super(properties);
 		registerDefaultState(defaultBlockState().setValue(HEAT_LEVEL, BlazeBurnerBlock.HeatLevel.NONE));
-	}
-
-	@Override
-	protected MapCodec<? extends HorizontalDirectionalBlock> codec() {
-		return CODEC;
 	}
 
 	public static BlazeBurnerBlock.HeatLevel getHeatLevelOf(BlockState blockState) {
@@ -134,7 +128,7 @@ public class LiquidBlazeBurnerBlock extends HorizontalDirectionalBlock implement
 				if (stack.isEmpty()) {
 					player.setItemInHand(hand, leftover);
 				} else if (!player.getInventory().add(leftover)) {
-					player.drop(leftover, false);
+					player.drop(leftover, false, Prediction.SERVER_ONLY);
 				}
 			}
 		}

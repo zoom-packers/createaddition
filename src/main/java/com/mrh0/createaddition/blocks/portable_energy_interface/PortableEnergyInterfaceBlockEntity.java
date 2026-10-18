@@ -1,17 +1,18 @@
 package com.mrh0.createaddition.blocks.portable_energy_interface;
 
+import net.neoforged.neoforge.transfer.transaction.SnapshotJournal;
 import com.mrh0.createaddition.config.CACommonConfig;
 import com.mrh0.createaddition.transfer.EnergyTransferable;
 import com.zurrtum.create.content.contraptions.Contraption;
 import com.zurrtum.create.content.contraptions.actors.psi.PortableStorageInterfaceBlockEntity;
-import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
+import net.neoforged.neoforge.transfer.transaction.TransactionContext;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
-import team.reborn.energy.api.EnergyStorage;
+import com.mrh0.createaddition.neoforge.energy.EnergyStorage;
 
 public class PortableEnergyInterfaceBlockEntity extends PortableStorageInterfaceBlockEntity implements EnergyTransferable {
 
@@ -61,6 +62,30 @@ public class PortableEnergyInterfaceBlockEntity extends PortableStorageInterface
 	public class InterfaceEnergyHandler implements EnergyStorage {
 
 		private EnergyStorage wrapped;
+		// NeoForge: transactions have no outer-close callbacks; a journal runs keepAlive() when the root commits
+		private boolean transferred;
+		private final SnapshotJournal<Boolean> keepAliveJournal = new SnapshotJournal<>() {
+			@Override
+			protected Boolean createSnapshot() {
+				return transferred;
+			}
+
+			@Override
+			protected void revertToSnapshot(Boolean snapshot) {
+				transferred = snapshot;
+			}
+
+			@Override
+			protected void onRootCommit(Boolean originalState) {
+				if (transferred) keepAlive();
+				transferred = false;
+			}
+		};
+
+		private void markTransferred(TransactionContext transaction) {
+			keepAliveJournal.updateSnapshots(transaction);
+			transferred = true;
+		}
 
 		public InterfaceEnergyHandler(EnergyStorage wrapped) {
 			this.wrapped = wrapped;
@@ -75,9 +100,7 @@ public class PortableEnergyInterfaceBlockEntity extends PortableStorageInterface
 			if (!PortableEnergyInterfaceBlockEntity.this.canTransfer()) return 0;
 			maxAmount = Math.min(maxAmount, CACommonConfig.COMMON.PEI_MAX_INPUT.get());
 			long received = wrapped.insert(maxAmount, transaction);
-			if (received != 0) transaction.addOuterCloseCallback(result -> {
-				if (result.wasCommitted()) keepAlive();
-			});
+			if (received != 0) markTransferred(transaction);
 			return received;
 		}
 
@@ -86,9 +109,7 @@ public class PortableEnergyInterfaceBlockEntity extends PortableStorageInterface
 			if (!PortableEnergyInterfaceBlockEntity.this.canTransfer()) return 0;
 			maxAmount = Math.min(maxAmount, CACommonConfig.COMMON.PEI_MAX_OUTPUT.get());
 			long extracted = wrapped.extract(maxAmount, transaction);
-			if (extracted != 0) transaction.addOuterCloseCallback(result -> {
-				if (result.wasCommitted()) keepAlive();
-			});
+			if (extracted != 0) markTransferred(transaction);
 			return extracted;
 		}
 

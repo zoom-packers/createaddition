@@ -31,7 +31,7 @@ import net.minecraft.world.level.storage.ValueOutput;
 
 import org.jetbrains.annotations.Nullable;
 
-import team.reborn.energy.api.EnergyStorage;
+import com.mrh0.createaddition.neoforge.energy.EnergyStorage;
 
 public class ServoMotorBlockEntity extends MechanicalBearingBlockEntity implements EnergyTransferable {
 

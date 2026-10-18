@@ -6,13 +6,14 @@
     "fluid_tag": "#c:creosote"
   },
   "burn_time": 4800,
-  "fabric:load_conditions": [
+  "neoforge:conditions": [
     {
-      "condition": "fabric:tags_populated",
-      "registry": "minecraft:fluid",
-      "values": [
-        "c:creosote"
-      ]
+      "type": "neoforge:not",
+      "value": {
+        "type": "neoforge:tag_empty",
+        "tag": "c:creosote",
+        "registry": "minecraft:fluid"
+      }
     }
   ]
 }

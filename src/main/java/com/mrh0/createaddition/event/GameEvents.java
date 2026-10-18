@@ -9,10 +9,12 @@ import com.zurrtum.create.AllBlocks;
 
 import com.zurrtum.create.content.processing.burner.BlazeBurnerBlock;
 import com.zurrtum.create.content.processing.burner.BlazeBurnerBlockEntity;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerChunkEvents;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLevelEvents;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
-import net.fabricmc.fabric.api.event.player.UseBlockCallback;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
+import net.neoforged.neoforge.event.level.ChunkEvent;
+import net.neoforged.neoforge.event.level.LevelEvent;
+import net.neoforged.neoforge.event.tick.LevelTickEvent;
+import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
@@ -28,11 +30,25 @@ import net.minecraft.world.phys.BlockHitResult;
 public class GameEvents {
 
 	public static void initCommon() {
-		ServerTickEvents.START_LEVEL_TICK.register(GameEvents::levelTickEvent);
-		ServerTickEvents.START_SERVER_TICK.register(GameEvents::serverTickEvent);
-		ServerChunkEvents.CHUNK_LOAD.register(GameEvents::chunkLoadEvent);
-		ServerLevelEvents.UNLOAD.register(GameEvents::unloadEvent);
-		UseBlockCallback.EVENT.register(GameEvents::interact);
+		// NeoForge: Fabric API's lifecycle callbacks are NeoForge events
+		NeoForge.EVENT_BUS.addListener(LevelTickEvent.Pre.class, event -> {
+			if (event.getLevel() instanceof ServerLevel level) levelTickEvent(level);
+		});
+		NeoForge.EVENT_BUS.addListener(ServerTickEvent.Pre.class, event -> serverTickEvent(event.getServer()));
+		NeoForge.EVENT_BUS.addListener(ChunkEvent.Load.class, event -> {
+			if (event.getLevel() instanceof ServerLevel level && event.getChunk() instanceof LevelChunk chunk)
+				chunkLoadEvent(level, chunk, event.isNewChunk());
+		});
+		NeoForge.EVENT_BUS.addListener(LevelEvent.Unload.class, event -> {
+			if (event.getLevel() instanceof ServerLevel level) unloadEvent(level.getServer(), level);
+		});
+		NeoForge.EVENT_BUS.addListener(PlayerInteractEvent.RightClickBlock.class, event -> {
+			InteractionResult result = interact(event.getEntity(), event.getLevel(), event.getHand(), event.getHitVec());
+			if (result != InteractionResult.PASS) {
+				event.setCanceled(true);
+				event.setCancellationResult(result);
+			}
+		});
 	}
 
 	public static void levelTickEvent(ServerLevel level) {

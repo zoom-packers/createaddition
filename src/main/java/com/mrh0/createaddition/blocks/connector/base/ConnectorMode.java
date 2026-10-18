@@ -1,5 +1,6 @@
 package com.mrh0.createaddition.blocks.connector.base;
 
+import com.mrh0.createaddition.neoforge.energy.CAEnergy;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
@@ -7,7 +8,7 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import team.reborn.energy.api.EnergyStorage;
+import com.mrh0.createaddition.neoforge.energy.EnergyStorage;
 
 public enum ConnectorMode implements StringRepresentable {
 	Push("push"),
@@ -51,8 +52,8 @@ public enum ConnectorMode implements StringRepresentable {
 	public static ConnectorMode test(Level level, BlockPos pos, Direction face) {
 		BlockEntity be = level.getBlockEntity(pos);
 		if(be == null) return None;
-		EnergyStorage energy = EnergyStorage.SIDED.find(level, pos, face);
-		if (energy == null) energy = EnergyStorage.SIDED.find(level, pos, null);
+		EnergyStorage energy = CAEnergy.find(level, pos, face);
+		if (energy == null) energy = CAEnergy.find(level, pos, null);
 		if (energy == null) return None;
 
 		if(energy.supportsExtraction()) return Pull;

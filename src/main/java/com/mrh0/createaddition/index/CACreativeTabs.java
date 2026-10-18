@@ -4,7 +4,6 @@ import com.mrh0.createaddition.CreateAddition;
 
 import java.util.Set;
 
-import net.fabricmc.fabric.api.creativetab.v1.FabricCreativeModeTab;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -22,7 +21,7 @@ public class CACreativeTabs {
 
 	public static void register() {
 		Registry.register(BuiltInRegistries.CREATIVE_MODE_TAB, MAIN_TAB,
-				FabricCreativeModeTab.builder().icon(() -> new ItemStack(CABlocks.ELECTRIC_MOTOR))
+				CreativeModeTab.builder().icon(() -> new ItemStack(CABlocks.ELECTRIC_MOTOR))
 						.title(Component.translatable("itemGroup.createaddition.main"))
 						.displayItems((itemDisplayParameters, output) -> {
 							Set<Item> searchOnly = Set.of(CAItems.CAKE_BASE, CAItems.CAKE_BASE_BAKED, CAItems.BIOMASS);

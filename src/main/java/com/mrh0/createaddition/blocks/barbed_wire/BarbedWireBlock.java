@@ -2,7 +2,7 @@ package com.mrh0.createaddition.blocks.barbed_wire;
 
 import com.mrh0.createaddition.config.CACommonConfig;
 import com.mrh0.createaddition.index.CADamageTypes;
-import net.fabricmc.fabric.api.tag.convention.v2.ConventionalItemTags;
+import net.neoforged.neoforge.common.Tags;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Direction.Axis;
@@ -57,7 +57,7 @@ public class BarbedWireBlock extends Block implements SimpleWaterloggedBlock {
 
 	@Override
 	protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
-		if(!stack.is(ConventionalItemTags.SHEAR_TOOLS))
+		if(!stack.is(Tags.Items.TOOLS_SHEAR))
 			return super.useItemOn(stack, state, level, pos, player, hand, hitResult);
 		if(!level.isClientSide()) {
 			level.playSound(null, pos, SoundEvents.SHEEP_SHEAR, SoundSource.BLOCKS, 1f, 1f);

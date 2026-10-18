@@ -1,17 +1,18 @@
 package com.mrh0.createaddition.energy;
 
-import net.fabricmc.fabric.api.transfer.v1.storage.StoragePreconditions;
-import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
-import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
-import net.fabricmc.fabric.api.transfer.v1.transaction.base.SnapshotParticipant;
+import com.mrh0.createaddition.neoforge.energy.EnergyPreconditions;
+import net.neoforged.neoforge.transfer.transaction.Transaction;
+import net.neoforged.neoforge.transfer.transaction.TransactionContext;
+import net.neoforged.neoforge.transfer.transaction.SnapshotJournal;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
-import team.reborn.energy.api.EnergyStorage;
+import com.mrh0.createaddition.neoforge.energy.CAEnergy;
+import com.mrh0.createaddition.neoforge.energy.EnergyStorage;
 
-public class InternalEnergyStorage extends SnapshotParticipant<Long> implements EnergyStorage {
+public class InternalEnergyStorage extends SnapshotJournal<Long> implements EnergyStorage {
     public long amount = 0;
     public long capacity;
     public final long maxReceive, maxExtract;
@@ -25,9 +26,9 @@ public class InternalEnergyStorage extends SnapshotParticipant<Long> implements 
     }
 
     public InternalEnergyStorage(long capacity, long maxReceive, long maxExtract) {
-        StoragePreconditions.notNegative(capacity);
-        StoragePreconditions.notNegative(maxReceive);
-        StoragePreconditions.notNegative(maxExtract);
+        EnergyPreconditions.notNegative(capacity);
+        EnergyPreconditions.notNegative(maxReceive);
+        EnergyPreconditions.notNegative(maxExtract);
 
         this.capacity = capacity;
         this.maxReceive = maxReceive;
@@ -45,7 +46,7 @@ public class InternalEnergyStorage extends SnapshotParticipant<Long> implements 
     }
 
     @Override
-    protected void readSnapshot(Long snapshot) {
+    protected void revertToSnapshot(Long snapshot) {
         amount = snapshot;
     }
 
@@ -77,7 +78,7 @@ public class InternalEnergyStorage extends SnapshotParticipant<Long> implements 
 
     @Override
     public long insert(long maxAmount, TransactionContext transaction) {
-        StoragePreconditions.notNegative(maxAmount);
+        EnergyPreconditions.notNegative(maxAmount);
 
         long inserted = Math.min(maxReceive, Math.min(maxAmount, capacity - amount));
 
@@ -92,7 +93,7 @@ public class InternalEnergyStorage extends SnapshotParticipant<Long> implements 
 
     @Override
     public long extract(long maxAmount, TransactionContext transaction) {
-        StoragePreconditions.notNegative(maxAmount);
+        EnergyPreconditions.notNegative(maxAmount);
 
         long extracted = Math.min(maxExtract, Math.min(maxAmount, amount));
 
@@ -137,10 +138,10 @@ public class InternalEnergyStorage extends SnapshotParticipant<Long> implements 
 
     @Deprecated
     public void outputToSide(Level world, BlockPos pos, Direction side, int max) {
-		EnergyStorage ies = EnergyStorage.SIDED.find(world, pos.relative(side), side.getOpposite());
+		EnergyStorage ies = CAEnergy.find(world, pos.relative(side), side.getOpposite());
 		if(ies == null)
 			return;
-        try(Transaction t = Transaction.openOuter()) {
+        try(Transaction t = Transaction.openRoot()) {
             long ext = this.extract(max, t);
             this.insert(ext - ies.insert(ext, t), t);
             t.commit();

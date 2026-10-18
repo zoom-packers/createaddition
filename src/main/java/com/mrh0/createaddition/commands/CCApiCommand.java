@@ -4,7 +4,8 @@ import java.net.URI;
 
 import com.mojang.brigadier.CommandDispatcher;
 
-import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -16,7 +17,7 @@ import net.minecraft.world.entity.player.Player;
 
 public class CCApiCommand {
 	public static void register() {
-		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> register(dispatcher));
+		NeoForge.EVENT_BUS.addListener(RegisterCommandsEvent.class, event -> register(event.getDispatcher()));
 	}
 
 	public static void register(CommandDispatcher<CommandSourceStack> dispather) {

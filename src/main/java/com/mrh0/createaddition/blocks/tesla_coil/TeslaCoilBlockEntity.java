@@ -18,9 +18,9 @@ import com.zurrtum.create.content.kinetics.belt.behaviour.TransportedItemStackHa
 import com.zurrtum.create.content.kinetics.belt.transport.TransportedItemStack;
 import com.zurrtum.create.infrastructure.items.ItemStackHandler;
 
-import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext;
-import net.fabricmc.fabric.api.transfer.v1.item.base.SingleStackStorage;
-import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
+import com.mrh0.createaddition.neoforge.energy.CAEnergy;
+import net.neoforged.neoforge.transfer.access.ItemAccess;
+import net.neoforged.neoforge.transfer.transaction.Transaction;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
@@ -38,7 +38,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
-import team.reborn.energy.api.EnergyStorage;
+import com.mrh0.createaddition.neoforge.energy.EnergyStorage;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -193,24 +193,15 @@ public class TeslaCoilBlockEntity extends AbstractElectricBlockEntity implements
 	}
 
 	protected boolean chargeStack(ItemStack stack, TransportedItemStack transported, TransportedItemStackHandlerBehaviour handler) {
-		ContainerItemContext context = ContainerItemContext.ofSingleSlot(new SingleStackStorage() {
-			@Override
-			protected ItemStack getStack() {
-				return transported.stack;
-			}
-
-			@Override
-			protected void setStack(ItemStack stack) {
-				transported.stack = stack;
-			}
-		});
-		EnergyStorage es = EnergyStorage.ITEM.find(transported.stack, context);
+		// NeoForge: the item access charges the transported stack in place
+		if (transported.stack.isEmpty()) return false;
+		EnergyStorage es = CAEnergy.find(transported.stack, ItemAccess.forStack(transported.stack));
 		if (es == null) return false;
-		try(Transaction t = Transaction.openOuter()) {
+		try(Transaction t = Transaction.openRoot()) {
 			if(es.insert(1, t) != 1) return false;
 		}
 		if(localEnergy.getAmount() < transported.stack.getCount()) return false;
-		try(Transaction t = Transaction.openOuter()) {
+		try(Transaction t = Transaction.openRoot()) {
 			localEnergy.internalConsumeEnergy(es.insert(Math.min(getConsumption(), localEnergy.getAmount()), t));
 			t.commit();
 		}

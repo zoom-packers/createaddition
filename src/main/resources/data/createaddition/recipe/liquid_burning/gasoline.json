@@ -6,13 +6,14 @@
     "fluid_tag": "#c:gasoline"
   },
   "burn_time": 24000,
-  "fabric:load_conditions": [
+  "neoforge:conditions": [
     {
-      "condition": "fabric:tags_populated",
-      "registry": "minecraft:fluid",
-      "values": [
-        "c:gasoline"
-      ]
+      "type": "neoforge:not",
+      "value": {
+        "type": "neoforge:tag_empty",
+        "tag": "c:gasoline",
+        "registry": "minecraft:fluid"
+      }
     }
   ]
 }
