@@ -298,5 +298,10 @@
   "createaddition.ponder.servo_motor.text_5": "The signals from both sides are summed, with the Min side counting as negative, so equal signals cancel each other out",
   "createaddition.ponder.servo_motor.text_6": "How far the Servo turns depends on the strength of the summed signal",
   "createaddition.ponder.servo_motor.text_7": "Scroll on the sides of the Servo to adjust its Max and Min Angles between 0° and 180°",
-  "createaddition.ponder.servo_motor.text_8": "With the Max Angle raised to 180°, the same signal now turns it twice as far"
+  "createaddition.ponder.servo_motor.text_8": "With the Max Angle raised to 180°, the same signal now turns it twice as far",
+  "tag.item.createaddition.large_connector_usable_rods": "Large Connector Rods",
+  "tag.item.createaddition.modular_accumulator_usable_wires": "Modular Accumulator Wires",
+  "tag.item.createaddition.plant_foods": "Plant Foods",
+  "tag.item.createaddition.plants": "Plants",
+  "tag.item.createaddition.spools": "Spools"
 }
